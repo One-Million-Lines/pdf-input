@@ -68,10 +68,10 @@ function EditorContent() {
     }
   }, [localTemplate, generateShareLink]);
 
-  const handleAddField = useCallback((pageIndex: number, x: number, y: number) => {
+  const handleAddField = useCallback((pageIndex: number, x: number, y: number, fieldType: 'text' | 'date' | 'select' = 'text') => {
     if (!localTemplate) return;
     
-    const field = createField(pageIndex, x, y);
+    const field = createField(pageIndex, x, y, fieldType);
     setLocalTemplate({
       ...localTemplate,
       fields: [...localTemplate.fields, field],
@@ -211,20 +211,20 @@ interface PageDropZoneProps {
   pageIndex: number;
   pageWidth: number;
   pageHeight: number;
-  onDrop: (pageIndex: number, x: number, y: number) => void;
+  onDrop: (pageIndex: number, x: number, y: number, fieldType: 'text' | 'date' | 'select') => void;
 }
 
 function PageDropZone({ pageIndex, pageWidth, pageHeight, onDrop }: PageDropZoneProps) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'NEW_FIELD',
-    drop: (item, monitor) => {
+    drop: (item: { type: string; fieldType?: 'text' | 'date' | 'select' }, monitor) => {
       const offset = monitor.getClientOffset();
       const dropTargetRect = document.querySelector(`[data-page-drop="${pageIndex}"]`)?.getBoundingClientRect();
       
       if (offset && dropTargetRect) {
         const x = (offset.x - dropTargetRect.left) / pageWidth;
         const y = (offset.y - dropTargetRect.top) / pageHeight;
-        onDrop(pageIndex, Math.max(0, Math.min(0.8, x)), Math.max(0, Math.min(0.97, y)));
+        onDrop(pageIndex, Math.max(0, Math.min(0.8, x)), Math.max(0, Math.min(0.97, y)), item.fieldType || 'text');
       }
     },
     collect: (monitor) => ({

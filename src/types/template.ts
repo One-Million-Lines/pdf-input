@@ -1,6 +1,6 @@
 export interface TemplateField {
   id: string;
-  type: 'text';
+  type: 'text' | 'date' | 'select';
   label: string;
   placeholder: string;
   required: boolean;
@@ -12,6 +12,8 @@ export interface TemplateField {
   w: number; // 0-1 relative to page width
   h: number; // 0-1 relative to page height
   fontSize: number;
+  // For select fields: comma-separated options
+  options?: string;
 }
 
 export interface PageMeta {
