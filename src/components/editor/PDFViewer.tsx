@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { ZoomIn, ZoomOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,13 @@ export function PDFViewer({
   const [pageHeights, setPageHeights] = useState<Map<number, number>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Create a stable file object that won't cause re-loading on every render
+  // We use a Uint8Array because react-pdf transfers ArrayBuffers which detaches them
+  const fileData = useMemo(() => {
+    if (!pdfData) return null;
+    return { data: new Uint8Array(pdfData) };
+  }, [pdfData]);
+
   const handleDocumentLoad = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
     onNumPages?.(numPages);
@@ -52,7 +59,7 @@ export function PDFViewer({
     onPageLoad?.(pageIndex, width, height);
   };
 
-  if (!pdfData) {
+  if (!fileData) {
     return (
       <div className={cn('flex items-center justify-center bg-muted/50 rounded-lg', className)}>
         <p className="text-muted-foreground">Loading PDF...</p>
@@ -63,7 +70,7 @@ export function PDFViewer({
   return (
     <div ref={containerRef} className={cn('overflow-auto bg-muted/30', className)}>
       <Document
-        file={{ data: pdfData }}
+        file={fileData}
         onLoadSuccess={handleDocumentLoad}
         loading={
           <div className="flex items-center justify-center h-64">
