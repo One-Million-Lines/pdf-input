@@ -33,13 +33,19 @@ function getDB() {
 
 export async function storePDF(templateId: string, data: ArrayBuffer): Promise<void> {
   const db = await getDB();
-  await db.put('pdfs', { templateId, data });
+  // Clone the ArrayBuffer before storing to avoid detachment issues
+  await db.put('pdfs', { templateId, data: data.slice(0) });
 }
 
 export async function getPDF(templateId: string): Promise<ArrayBuffer | undefined> {
   const db = await getDB();
   const result = await db.get('pdfs', templateId);
-  return result?.data;
+  // Clone the ArrayBuffer to avoid "detached ArrayBuffer" errors
+  // IndexedDB can detach the buffer after retrieval
+  if (result?.data) {
+    return result.data.slice(0);
+  }
+  return undefined;
 }
 
 export async function deletePDF(templateId: string): Promise<void> {
