@@ -69,20 +69,26 @@ export async function getTemplateByShareId(shareId: string): Promise<Template | 
   return getTemplateByShareIdFromDB(shareId);
 }
 
-export function createField(pageIndex: number, x: number, y: number): TemplateField {
-  return {
+export function createField(pageIndex: number, x: number, y: number, fieldType: 'text' | 'date' | 'select' = 'text'): TemplateField {
+  const baseField = {
     id: nanoid(8),
-    type: 'text',
-    label: 'New Field',
-    placeholder: 'Enter text...',
+    type: fieldType,
+    label: fieldType === 'date' ? 'Date' : fieldType === 'select' ? 'Selection' : 'New Field',
+    placeholder: fieldType === 'date' ? '' : fieldType === 'select' ? 'Select...' : 'Enter text...',
     required: false,
     maxLength: undefined,
     defaultValue: '',
     pageIndex,
     x,
     y,
-    w: 0.2, // 20% of page width
+    w: fieldType === 'date' ? 0.12 : 0.2, // Date fields are narrower
     h: 0.03, // 3% of page height
     fontSize: 12,
   };
+
+  if (fieldType === 'select') {
+    return { ...baseField, options: 'Option 1, Option 2, Option 3' };
+  }
+
+  return baseField;
 }

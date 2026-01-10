@@ -1,5 +1,13 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { Calendar, ChevronDown } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { TemplateField } from '@/types/template';
 
 interface FieldOverlayProps {
@@ -86,6 +94,7 @@ export function FieldOverlay({
     };
   }, [isDragging, isResizing, dragStart, initialPos, pageWidth, pageHeight, field, onUpdate]);
 
+  // Fill mode rendering
   if (mode === 'fill') {
     return (
       <div
@@ -97,21 +106,70 @@ export function FieldOverlay({
           height: absH,
         }}
       >
-        <input
-          type="text"
-          value={value || ''}
-          onChange={(e) => onChange?.(e.target.value)}
-          placeholder={field.placeholder}
-          maxLength={field.maxLength}
-          className={cn(
-            'w-full h-full px-1 text-foreground bg-background/80 border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary',
-            field.required && !value && 'border-destructive'
-          )}
-          style={{ fontSize: field.fontSize }}
-        />
+        {field.type === 'date' && (
+          <div
+            className="w-full h-full px-1 flex items-center text-foreground bg-muted/80 border rounded-sm"
+            style={{ fontSize: field.fontSize }}
+          >
+            <Calendar className="h-3 w-3 mr-1 text-muted-foreground flex-shrink-0" />
+            <span className="truncate">{value || new Date().toLocaleDateString()}</span>
+          </div>
+        )}
+
+        {field.type === 'select' && (
+          <Select value={value || ''} onValueChange={(v) => onChange?.(v)}>
+            <SelectTrigger
+              className={cn(
+                'w-full h-full px-1 bg-background/80 border rounded-sm',
+                field.required && !value && 'border-destructive'
+              )}
+              style={{ fontSize: field.fontSize }}
+            >
+              <SelectValue placeholder={field.placeholder || 'Select...'} />
+            </SelectTrigger>
+            <SelectContent className="bg-background z-50">
+              {(field.options || '')
+                .split(',')
+                .map((opt) => opt.trim())
+                .filter(Boolean)
+                .map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {field.type === 'text' && (
+          <input
+            type="text"
+            value={value || ''}
+            onChange={(e) => onChange?.(e.target.value)}
+            placeholder={field.placeholder}
+            maxLength={field.maxLength}
+            className={cn(
+              'w-full h-full px-1 text-foreground bg-background/80 border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary',
+              field.required && !value && 'border-destructive'
+            )}
+            style={{ fontSize: field.fontSize }}
+          />
+        )}
       </div>
     );
   }
+
+  // Edit mode rendering
+  const getFieldTypeIndicator = () => {
+    switch (field.type) {
+      case 'date':
+        return <Calendar className="h-3 w-3" />;
+      case 'select':
+        return <ChevronDown className="h-3 w-3" />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
@@ -134,9 +192,10 @@ export function FieldOverlay({
     >
       {/* Label */}
       <div
-        className="absolute -top-5 left-0 text-xs font-medium text-primary bg-background px-1 rounded truncate max-w-full"
+        className="absolute -top-5 left-0 text-xs font-medium text-primary bg-background px-1 rounded truncate max-w-full flex items-center gap-1"
         style={{ fontSize: 10 }}
       >
+        {getFieldTypeIndicator()}
         {field.label}
         {field.required && <span className="text-destructive ml-0.5">*</span>}
       </div>

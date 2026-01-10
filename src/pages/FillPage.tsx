@@ -23,7 +23,10 @@ export default function FillPage() {
     if (template) {
       const defaultValues: FilledValues = {};
       template.fields.forEach((field) => {
-        if (field.defaultValue) {
+        if (field.type === 'date') {
+          // Auto-fill date fields with current date
+          defaultValues[field.id] = new Date().toLocaleDateString();
+        } else if (field.defaultValue) {
           defaultValues[field.id] = field.defaultValue;
         }
       });
@@ -39,7 +42,9 @@ export default function FillPage() {
     if (!template) return;
     const defaultValues: FilledValues = {};
     template.fields.forEach((field) => {
-      if (field.defaultValue) {
+      if (field.type === 'date') {
+        defaultValues[field.id] = new Date().toLocaleDateString();
+      } else if (field.defaultValue) {
         defaultValues[field.id] = field.defaultValue;
       }
     });
@@ -49,7 +54,8 @@ export default function FillPage() {
 
   const missingRequired = useMemo(() => {
     if (!template) return [];
-    return template.fields.filter((f) => f.required && !values[f.id]?.trim());
+    // Date fields are auto-filled, so exclude them from required check
+    return template.fields.filter((f) => f.required && f.type !== 'date' && !values[f.id]?.trim());
   }, [template, values]);
 
   const handleDownload = useCallback(async () => {

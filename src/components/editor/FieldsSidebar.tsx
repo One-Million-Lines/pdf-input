@@ -1,12 +1,13 @@
 import React from 'react';
 import { useDrag } from 'react-dnd';
-import { Plus, GripVertical, Trash2 } from 'lucide-react';
+import { GripVertical, Trash2, Type, Calendar, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import type { TemplateField } from '@/types/template';
 
 interface FieldsSidebarProps {
@@ -31,19 +32,21 @@ export function FieldsSidebar({
       <div className="p-4 border-b">
         <h2 className="font-semibold">Fields</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Drag the button below onto the PDF to add a field
+          Drag a field type below onto the PDF
         </p>
       </div>
 
-      <div className="p-4 border-b">
-        <DraggableFieldButton />
+      <div className="p-4 border-b space-y-2">
+        <DraggableFieldButton type="text" icon={Type} label="Text Field" />
+        <DraggableFieldButton type="date" icon={Calendar} label="Date Field" />
+        <DraggableFieldButton type="select" icon={List} label="Select Field" />
       </div>
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-2">
           {fields.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
-              No fields yet. Drag the button above onto the PDF to add one.
+              No fields yet. Drag a field above onto the PDF to add one.
             </p>
           ) : (
             fields.map((field) => (
@@ -62,8 +65,16 @@ export function FieldsSidebar({
       {selectedField && (
         <>
           <Separator />
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-4 max-h-[50%] overflow-y-auto">
             <h3 className="font-medium text-sm">Field Properties</h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="type" className="text-xs">Type</Label>
+              <div className="text-sm text-muted-foreground capitalize bg-muted px-2 py-1 rounded">
+                {selectedField.type}
+                {selectedField.type === 'date' && ' (auto-fills current date)'}
+              </div>
+            </div>
             
             <div className="space-y-2">
               <Label htmlFor="label" className="text-xs">Label</Label>
@@ -75,40 +86,60 @@ export function FieldsSidebar({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="placeholder" className="text-xs">Placeholder</Label>
-              <Input
-                id="placeholder"
-                value={selectedField.placeholder}
-                onChange={(e) => onUpdateField(selectedField.id, { placeholder: e.target.value })}
-                placeholder="Placeholder text"
-              />
-            </div>
+            {selectedField.type === 'text' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="placeholder" className="text-xs">Placeholder</Label>
+                  <Input
+                    id="placeholder"
+                    value={selectedField.placeholder}
+                    onChange={(e) => onUpdateField(selectedField.id, { placeholder: e.target.value })}
+                    placeholder="Placeholder text"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="defaultValue" className="text-xs">Default Value</Label>
-              <Input
-                id="defaultValue"
-                value={selectedField.defaultValue}
-                onChange={(e) => onUpdateField(selectedField.id, { defaultValue: e.target.value })}
-                placeholder="Default value"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="defaultValue" className="text-xs">Default Value</Label>
+                  <Input
+                    id="defaultValue"
+                    value={selectedField.defaultValue}
+                    onChange={(e) => onUpdateField(selectedField.id, { defaultValue: e.target.value })}
+                    placeholder="Default value"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="maxLength" className="text-xs">Max Length</Label>
-              <Input
-                id="maxLength"
-                type="number"
-                value={selectedField.maxLength || ''}
-                onChange={(e) =>
-                  onUpdateField(selectedField.id, {
-                    maxLength: e.target.value ? parseInt(e.target.value) : undefined,
-                  })
-                }
-                placeholder="No limit"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="maxLength" className="text-xs">Max Length</Label>
+                  <Input
+                    id="maxLength"
+                    type="number"
+                    value={selectedField.maxLength || ''}
+                    onChange={(e) =>
+                      onUpdateField(selectedField.id, {
+                        maxLength: e.target.value ? parseInt(e.target.value) : undefined,
+                      })
+                    }
+                    placeholder="No limit"
+                  />
+                </div>
+              </>
+            )}
+
+            {selectedField.type === 'select' && (
+              <div className="space-y-2">
+                <Label htmlFor="options" className="text-xs">Options (comma-separated)</Label>
+                <Textarea
+                  id="options"
+                  value={selectedField.options || ''}
+                  onChange={(e) => onUpdateField(selectedField.id, { options: e.target.value })}
+                  placeholder="Option 1, Option 2, Option 3"
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter options separated by commas
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="fontSize" className="text-xs">Font Size</Label>
@@ -124,14 +155,16 @@ export function FieldsSidebar({
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <Label htmlFor="required" className="text-xs">Required</Label>
-              <Switch
-                id="required"
-                checked={selectedField.required}
-                onCheckedChange={(checked) => onUpdateField(selectedField.id, { required: checked })}
-              />
-            </div>
+            {selectedField.type !== 'date' && (
+              <div className="flex items-center justify-between">
+                <Label htmlFor="required" className="text-xs">Required</Label>
+                <Switch
+                  id="required"
+                  checked={selectedField.required}
+                  onCheckedChange={(checked) => onUpdateField(selectedField.id, { required: checked })}
+                />
+              </div>
+            )}
           </div>
         </>
       )}
@@ -139,10 +172,16 @@ export function FieldsSidebar({
   );
 }
 
-function DraggableFieldButton() {
+interface DraggableFieldButtonProps {
+  type: 'text' | 'date' | 'select';
+  icon: React.ElementType;
+  label: string;
+}
+
+function DraggableFieldButton({ type, icon: Icon, label }: DraggableFieldButtonProps) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'NEW_FIELD',
-    item: { type: 'NEW_FIELD' },
+    item: { type: 'NEW_FIELD', fieldType: type },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -151,13 +190,13 @@ function DraggableFieldButton() {
   return (
     <div
       ref={drag}
-      className={`flex items-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-grab transition-colors ${
+      className={`flex items-center gap-2 p-2 border-2 border-dashed rounded-lg cursor-grab transition-colors ${
         isDragging ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
       }`}
     >
       <GripVertical className="h-4 w-4 text-muted-foreground" />
-      <Plus className="h-4 w-4" />
-      <span className="text-sm font-medium">Add Text Field</span>
+      <Icon className="h-4 w-4" />
+      <span className="text-sm font-medium">{label}</span>
     </div>
   );
 }
@@ -170,6 +209,17 @@ interface FieldListItemProps {
 }
 
 function FieldListItem({ field, isSelected, onSelect, onDelete }: FieldListItemProps) {
+  const getFieldIcon = () => {
+    switch (field.type) {
+      case 'date':
+        return <Calendar className="h-3 w-3" />;
+      case 'select':
+        return <List className="h-3 w-3" />;
+      default:
+        return <Type className="h-3 w-3" />;
+    }
+  };
+
   return (
     <div
       onClick={onSelect}
@@ -178,10 +228,11 @@ function FieldListItem({ field, isSelected, onSelect, onDelete }: FieldListItemP
       }`}
     >
       <div className="flex items-center gap-2 min-w-0">
-        <div
-          className={`w-2 h-2 rounded-full ${field.required ? 'bg-destructive' : 'bg-muted-foreground'}`}
-        />
+        <div className="text-muted-foreground">
+          {getFieldIcon()}
+        </div>
         <span className="text-sm truncate">{field.label || 'Untitled'}</span>
+        {field.required && <span className="text-destructive text-xs">*</span>}
         <span className="text-xs text-muted-foreground">P{field.pageIndex + 1}</span>
       </div>
       <Button
