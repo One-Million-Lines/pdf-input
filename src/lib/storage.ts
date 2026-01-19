@@ -43,7 +43,9 @@ export async function getPDF(templateId: string): Promise<ArrayBuffer | undefine
   // Clone the ArrayBuffer to avoid "detached ArrayBuffer" errors
   // IndexedDB can detach the buffer after retrieval
   if (result?.data) {
-    return result.data.slice(0);
+    // Convert to Uint8Array first, then create new ArrayBuffer
+    const uint8 = new Uint8Array(result.data);
+    return uint8.buffer;
   }
   return undefined;
 }
