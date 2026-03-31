@@ -5,7 +5,7 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: "/demo/pdf-input/",
+  base: mode === "production" ? "/demo/pdf-input/" : "/",
   server: {
     host: "::",
     port: 5303,

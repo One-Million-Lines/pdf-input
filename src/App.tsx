@@ -15,7 +15,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter basename="/demo/pdf-input">
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <div className="fixed top-0 left-0 right-0 z-50 bg-primary/90 backdrop-blur-sm text-primary-foreground text-center py-2 px-4 text-sm">
             Preview of the project for <a href="https://onemillionlines.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary-foreground/80">onemillionlines.com</a>
           </div>
