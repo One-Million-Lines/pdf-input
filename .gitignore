@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+coverage
 *.local
 
 # Python
@@ -31,6 +32,10 @@ backend/**/__pycache__/
 
 .env
 .env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
 
 # Python
 __pycache__/
